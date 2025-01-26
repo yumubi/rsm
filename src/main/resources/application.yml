@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: replicated-state-service
+
+  data:
+    mongodb:
+      uri: mongodb://${MONGO_HOSTS:localhost:27017}
+      database: eventstore
+
+  kafka:
+    bootstrap-servers: ${KAFKA_HOSTS:localhost:9092}
+    producer:
+      acks: all
+      retries: 3
+
+replication:
+  snapshot:
+    interval: 3600  # Take snapshot every hour
+    retention: 24   # Keep 24 snapshots
+
+  consensus:
+    minimum-nodes: 2
+    timeout: 5000
+
+disaster-recovery:
+  warm-standby:
+    enabled: true
+    sync-interval: 1000
+
+logging:
+  level:
+    io.hika.rsm: INFO
+    org.springframework.data.mongodb: INFO

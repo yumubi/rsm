@@ -1,0 +1,35 @@
+name: Continuous Delivery Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+
+      - name: Build and Test
+        run: ./gradlew build test
+
+      - name: Version Check
+        run: |
+          ./scripts/version-compatibility-check.sh
+
+      - name: Deploy to Staging
+        if: github.ref == 'refs/heads/main'
+        run: |
+          ./gradlew bootJar
+          docker build -t myapp:${{ github.sha }} .
+          # Deploy using blue-green deployment strategy
+          ./scripts/blue-green-deploy.sh
